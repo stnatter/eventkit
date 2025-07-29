@@ -1,6 +1,6 @@
 import asyncio
 import datetime as dt
-from typing import AsyncIterator, Optional, Union, cast
+from collections.abc import AsyncIterator
 
 
 class _NoValue:
@@ -8,7 +8,7 @@ class _NoValue:
         return False
 
     def __repr__(self) -> str:
-        return '<NoValue>'
+        return "<NoValue>"
 
     __str__ = __repr__
 
@@ -17,22 +17,35 @@ NO_VALUE = _NoValue()
 
 
 def get_event_loop() -> asyncio.AbstractEventLoop:
-    """Get asyncio event loop, running or not."""
+    """Get asyncio event loop, running or not. Modern approach with backward compatibility."""
     try:
+        # If there's a running loop, return it (uvloop compatible)
         return asyncio.get_running_loop()
     except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
+        # No running loop - use the most compatible approach
+        # We need to set the loop for task creation to work properly
+        try:
+            # Try getting the current thread's loop first (may show deprecation warning)
+            import warnings
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                loop = asyncio.get_event_loop()
+                return loop
+        except RuntimeError:
+            # Create and set a new loop
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop
 
 
 main_event_loop = get_event_loop()
 
 
 async def timerange(
-    start: Union[int, float, dt.datetime, dt.time] = 0,
-    end: Optional[Union[int, float, dt.datetime, dt.time]] = None,
-    step: Union[float, dt.timedelta] = 1
+    start: int | float | dt.datetime | dt.time = 0,
+    end: int | float | dt.datetime | dt.time | None = None,
+    step: float | dt.timedelta = 1,
 ) -> AsyncIterator[dt.datetime]:
     """
     Iterator that waits periodically until certain time points are
@@ -53,19 +66,18 @@ async def timerange(
         step: Number of seconds, or ``datetime.timedelta``,
             to space between values.
     """
-    tz = getattr(start, 'tzinfo', None)
+    tz = getattr(start, "tzinfo", None)
     now = dt.datetime.now(tz)
     if isinstance(step, dt.timedelta):
         delta = step
         step = delta.total_seconds()
     else:
         delta = dt.timedelta(seconds=step)
-    if start == 0 or isinstance(start, (int, float)):
-        seconds_val = float(start) if isinstance(start, (int, float)) else 0.0
+    if start == 0 or isinstance(start, int | float):
+        seconds_val = float(start) if isinstance(start, int | float) else 0.0
         t = now + dt.timedelta(seconds=seconds_val)
         # quantize to step
-        t = dt.datetime.fromtimestamp(
-            step * int(t.timestamp() / step))
+        t = dt.datetime.fromtimestamp(step * int(t.timestamp() / step))
     elif isinstance(start, dt.time):
         t = dt.datetime.combine(now.today(), start)
     else:
@@ -78,7 +90,7 @@ async def timerange(
 
     if isinstance(end, dt.time):
         end = dt.datetime.combine(now.today(), end)
-    elif isinstance(end, (int, float)):
+    elif isinstance(end, int | float):
         end = now + dt.timedelta(seconds=end)
 
     while end is None or t <= end:

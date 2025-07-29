@@ -1,15 +1,15 @@
 from collections import deque
-from typing import Any as AnyType, Optional
+from typing import Any as AnyType
 
-from .op import Op
 from ..event import Event
 from ..util import NO_VALUE, get_event_loop
+from .op import Op
 
 
 class Delay(Op):
-    __slots__ = ('_delay',)
+    __slots__ = ("_delay",)
 
-    def __init__(self, delay: float, source: Optional[AnyType] = None):
+    def __init__(self, delay: float, source: AnyType | None = None):
         Op.__init__(self, source)
         self._delay = delay
 
@@ -31,7 +31,7 @@ class Delay(Op):
 
 
 class Timeout(Op):
-    __slots__ = ('_timeout', '_handle', '_last_time')
+    __slots__ = ("_timeout", "_handle", "_last_time")
 
     def __init__(self, timeout, source=None):
         Op.__init__(self, source)
@@ -55,8 +55,7 @@ class Timeout(Op):
 
     def _schedule(self):
         loop = get_event_loop()
-        self._handle = loop.call_at(
-            self._last_time + self._timeout, self._on_timer)
+        self._handle = loop.call_at(self._last_time + self._timeout, self._on_timer)
 
     def _on_timer(self):
         loop = get_event_loop()
@@ -68,13 +67,13 @@ class Timeout(Op):
 
 
 class Debounce(Op):
-    __slots__ = ('_interval', '_on_first', '_handle', '_last_time')
+    __slots__ = ("_interval", "_on_first", "_handle", "_last_time")
 
     def __init__(self, interval, on_first=False, source=None):
         Op.__init__(self, source)
         self._interval = interval
         self._on_first = on_first
-        self._last_time = -float('inf')
+        self._last_time = -float("inf")
         self._handle = None
 
     def on_source(self, *args):
@@ -89,7 +88,8 @@ class Debounce(Op):
             if self._handle:
                 self._handle.cancel()
             self._handle = loop.call_at(
-                time + self._interval, self._delayed_emit, *args)
+                time + self._interval, self._delayed_emit, *args
+            )
 
     def _delayed_emit(self, *args):
         self._handle = None
@@ -106,12 +106,19 @@ class Debounce(Op):
 
 class Throttle(Op):
     __slots__ = (
-        'status_event', '_maximum', '_interval', '_cost_func',
-        '_q', '_time_q', '_cost_q', '_is_throttling')
+        "status_event",
+        "_maximum",
+        "_interval",
+        "_cost_func",
+        "_q",
+        "_time_q",
+        "_cost_q",
+        "_is_throttling",
+    )
 
     def __init__(self, maximum, interval, cost_func=None, source=None):
         Op.__init__(self, source)
-        self.status_event = Event('throttle_status')
+        self.status_event = Event("throttle_status")
         """
         Sub event that emits ``True`` when throttling starts and ``False``
         when throttling ends.
@@ -119,9 +126,9 @@ class Throttle(Op):
         self._maximum = maximum
         self._interval = interval
         self._cost_func = cost_func
-        self._q: deque = deque()        # deque of (args, cost) tuples
-        self._time_q: deque = deque()   # deque of previous emit times
-        self._cost_q: deque = deque()   # deque of costs of previous emits
+        self._q: deque = deque()  # deque of (args, cost) tuples
+        self._time_q: deque = deque()  # deque of previous emit times
+        self._cost_q: deque = deque()  # deque of costs of previous emits
         self._is_throttling = False
 
     def set_limit(self, maximum, interval):
@@ -188,15 +195,12 @@ class Throttle(Op):
 
 
 class Sample(Op):
-    __slots__ = ('_timer',)
+    __slots__ = ("_timer",)
 
     def __init__(self, timer, source=None):
         Op.__init__(self, source)
         self._timer = timer
-        timer.connect(
-            self._on_timer,
-            self.on_source_error,
-            self.on_source_done)
+        timer.connect(self._on_timer, self.on_source_error, self.on_source_done)
 
     def on_source(self, *args):
         self._value = args
@@ -208,7 +212,6 @@ class Sample(Op):
     def on_source_done(self, source):
         Op.on_source_done(self, self._source)
         self._timer.disconnect(
-            self._on_timer,
-            self.on_source_error,
-            self.on_source_done)
+            self._on_timer, self.on_source_error, self.on_source_done
+        )
         self._timer = None

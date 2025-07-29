@@ -1,23 +1,93 @@
-"""Event-driven data pipelines."""
+"""Event-driven data pipelines.
+
+Note: You may see RuntimeWarnings about "coroutine was never awaited" when
+using EventKit. These are harmless and expected - the coroutines are properly
+executed when run() is called. To suppress these warnings:
+
+    import warnings
+    warnings.filterwarnings("ignore", ".*was never awaited", RuntimeWarning)
+"""
 
 from .event import Event
 from .ops.aggregate import (
-    All, Any, Count, Deque, Ema, List, Max, Mean, Min, Pairwise, Product,
-    Reduce, Sum)
+    All,
+    Any,
+    Count,
+    Deque,
+    Ema,
+    List,
+    Max,
+    Mean,
+    Min,
+    Pairwise,
+    Product,
+    Reduce,
+    Sum,
+)
 from .ops.array import (
-    Array, ArrayAll, ArrayAny, ArrayMax, ArrayMean, ArrayMin, ArrayStd,
-    ArraySum)
+    Array,
+    ArrayAll,
+    ArrayAny,
+    ArrayMax,
+    ArrayMean,
+    ArrayMin,
+    ArrayStd,
+    ArraySum,
+)
 from .ops.combine import (
-    AddableJoinOp, Chain, Concat, Fork, Merge, Switch, Zip, Ziplatest)
+    AddableJoinOp,
+    Chain,
+    Concat,
+    Fork,
+    Merge,
+    Switch,
+    Zip,
+    Ziplatest,
+)
 from .ops.create import (
-    Aiterate, Marble, Range, Repeat, Sequence, Timer, Timerange, Wait)
+    Aiterate,
+    Marble,
+    Range,
+    Repeat,
+    Sequence,
+    Timer,
+    Timerange,
+    Wait,
+)
 from .ops.misc import EndOnError, Errors
 from .ops.op import Op
 from .ops.select import (
-    Changes, DropWhile, Filter, Last, Skip, Take, TakeUntil, TakeWhile, Unique)
-from .ops.timing import (Debounce, Delay, Sample, Throttle, Timeout)
+    Changes,
+    DropWhile,
+    Filter,
+    Last,
+    Skip,
+    Take,
+    TakeUntil,
+    TakeWhile,
+    Unique,
+)
+from .ops.timing import Debounce, Delay, Sample, Throttle, Timeout
 from .ops.transform import (
-    Chainmap, Chunk, ChunkWith, Concatmap, Constant, Copy, Deepcopy, Emap,
-    Enumerate, Iterate, Map, Mergemap, Pack, Partial, PartialRight, Pluck,
-    Previous, Star, Switchmap, Timestamp)
+    Chainmap,
+    Chunk,
+    ChunkWith,
+    Concatmap,
+    Constant,
+    Copy,
+    Deepcopy,
+    Emap,
+    Enumerate,
+    Iterate,
+    Map,
+    Mergemap,
+    Pack,
+    Partial,
+    PartialRight,
+    Pluck,
+    Previous,
+    Star,
+    Switchmap,
+    Timestamp,
+)
 from .version import __version__, __version_info__

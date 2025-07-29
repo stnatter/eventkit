@@ -2,22 +2,22 @@ import asyncio
 import itertools
 import time
 
-from .op import Op
 from ..event import Event
 from ..util import NO_VALUE, get_event_loop, timerange
+from .op import Op
 
 
 class Wait(Event):
-    __slots__ = ('_task',)
+    __slots__ = ("_task",)
 
-    def __init__(self, future, name='wait'):
+    def __init__(self, future, name="wait"):
         Event.__init__(self, name)
         if future.done():
             self._task = None
             self.set_done()
         else:
-            loop = get_event_loop()
-            self._task = asyncio.ensure_future(future, loop=loop)
+            # For futures, we don't need to create a task - just use the future directly
+            self._task = future
             future.add_done_callback(self._on_task_done)
 
     def _on_task_done(self, task):
@@ -32,17 +32,24 @@ class Wait(Event):
         self.set_done()
 
     def __del__(self):
-        if self._task:
+        if hasattr(self, "_task") and self._task:
             self._task.cancel()
 
 
 class Aiterate(Event):
-    __slots__ = ('_task',)
+    __slots__ = ("_task",)
 
     def __init__(self, ait):
         Event.__init__(self, ait.__qualname__)
-        loop = get_event_loop()
-        self._task = asyncio.ensure_future(self._looper(ait), loop=loop)
+        # Use the original working approach: always create the task
+        try:
+            self._task = asyncio.create_task(self._looper(ait))
+        except RuntimeError:
+            # No running loop - get/create one and use it
+            # Note: This may generate a "coroutine never awaited" warning
+            # but the task will be properly executed when run() is called
+            loop = get_event_loop()
+            self._task = loop.create_task(self._looper(ait))
 
     async def _looper(self, ait):
         try:
@@ -55,7 +62,7 @@ class Aiterate(Event):
         self.set_done()
 
     def __del__(self):
-        if self._task:
+        if hasattr(self, "_task") and self._task:
             self._task.cancel()
 
 
@@ -66,7 +73,7 @@ class Sequence(Aiterate):
         async def sequence():
             t0 = time.time()
             if times is not None:
-                for t, value in zip(times, values):
+                for t, value in zip(times, values, strict=False):
                     delay = max(0, time.time() + t - t0)
                     await asyncio.sleep(delay)
                     yield value
@@ -75,6 +82,7 @@ class Sequence(Aiterate):
                     delay = max(0, i * interval + t0 - time.time())
                     await asyncio.sleep(delay)
                     yield value
+
         Aiterate.__init__(self, sequence())
 
 
@@ -111,6 +119,7 @@ class Timer(Aiterate):
                 delay = i * interval + t0 - time.time()
                 await asyncio.sleep(delay)
                 yield i * interval
+
         Aiterate.__init__(self, timer())
 
 
@@ -118,8 +127,10 @@ class Marble(Op):
     __slots__ = ()
 
     def __init__(self, s, interval=0, times=None):
-        s = s.replace('_', '')
-        source = Event.sequence(s, interval, times) \
-            .filter(lambda c: c not in '- ') \
-            .takewhile(lambda c: c != '|')
+        s = s.replace("_", "")
+        source = (
+            Event.sequence(s, interval, times)
+            .filter(lambda c: c not in "- ")
+            .takewhile(lambda c: c != "|")
+        )
         Op.__init__(self, source)

@@ -1,4 +1,4 @@
-from typing import Any as AnyType, Optional, Union
+from typing import Any as AnyType
 
 from ..event import Event
 
@@ -19,7 +19,7 @@ class Op(Event):
 
     __slots__ = ()
 
-    def __init__(self, source: Union[Event, None] = None):
+    def __init__(self, source: Event | None = None):
         Event.__init__(self)
         if source is not None:
             self.set_source(source)
@@ -51,13 +51,8 @@ class Op(Event):
             self.set_done()
         else:
             source.connect(
-                self.on_source,
-                self.on_source_error,
-                self.on_source_done,
-                keep_ref=True)
+                self.on_source, self.on_source_error, self.on_source_done, keep_ref=True
+            )
 
     def _disconnect_from(self, source: Event) -> None:
-        source.disconnect(
-            self.on_source,
-            self.on_source_error,
-            self.on_source_done)
+        source.disconnect(self.on_source, self.on_source_error, self.on_source_done)

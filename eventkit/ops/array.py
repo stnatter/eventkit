@@ -1,14 +1,13 @@
 from collections import deque
-from typing import Any as AnyType, Optional
 
 import numpy as np
 
-from .op import Op
 from ..util import NO_VALUE
+from .op import Op
 
 
 class Array(Op):
-    __slots__ = ('_count', '_q')
+    __slots__ = ("_count", "_q")
 
     def __init__(self, count, source=None):
         Op.__init__(self, source)
@@ -16,8 +15,7 @@ class Array(Op):
         self._q: deque = deque()
 
     def on_source(self, *args):
-        self._q.append(
-            args[0] if len(args) == 1 else args if args else NO_VALUE)
+        self._q.append(args[0] if len(args) == 1 else args if args else NO_VALUE)
         if self._count and len(self._q) > self._count:
             self._q.popleft()
         self.emit(np.asarray(self._q))
