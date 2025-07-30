@@ -32,7 +32,6 @@ TRADING_INTEGRATION.md
 VSCODE_SETUP.md
 test_eventkit.py
 trading-environment-example.yaml
-pyproject.toml
 
 # GitHub Actions (also deleted)
 .github/
