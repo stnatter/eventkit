@@ -414,7 +414,11 @@ class Event:
                     yield (
                         args
                         if tuples
-                        else args[0] if len(args) == 1 else args if args else NO_VALUE
+                        else args[0]
+                        if len(args) == 1
+                        else args
+                        if args
+                        else NO_VALUE
                     )
                 elif what == "ERROR":
                     raise args

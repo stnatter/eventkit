@@ -21,6 +21,7 @@ classifiers = [
     "Intended Audience :: Science/Research", 
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -29,7 +30,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "numpy>=1.20.0",
+    "numpy>=2.2",
 ]
 
 [project.optional-dependencies]
