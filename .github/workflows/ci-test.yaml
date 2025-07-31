@@ -21,34 +21,18 @@ jobs:
       with:
         python-version: '3.13'
     
-    - name: Install linting tools
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install ruff
+        pip install -e .[dev]
     
     - name: Run Ruff linter
       run: |
-        ruff check eventkit tests || true
-        ruff format --check eventkit tests || true
-    
-    - name: Setup Micromamba for mypy
-      uses: mamba-org/setup-micromamba@v1
-      with:
-        environment-name: mypy-env
-        create-args: >-
-          python=3.13
-          pip
-          numpy>=2.2
-          mypy>=1.0.0
-        cache-environment: true
-    
-    - name: Install package for mypy
-      run: pip install -e .
-      shell: micromamba-shell {0}
+        ruff check eventkit tests
+        ruff format --check eventkit tests
     
     - name: Run mypy
       run: mypy eventkit
-      shell: micromamba-shell {0}
 
   test:
     needs: lint
@@ -56,43 +40,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.13', '3.14']
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.13', '3.14-dev']
         
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Micromamba
-      uses: mamba-org/setup-micromamba@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
       with:
-        environment-name: test-env
-        create-args: >-
-          python=${{ matrix.python-version }}
-          pip
-          numpy>=2.2
-          pytest>=7.0.0
-          pytest-asyncio>=0.21.0
-        cache-environment: true
-        cache-environment-key: ${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+        python-version: ${{ matrix.python-version }}
     
-    - name: Install package
-      run: pip install -e .
-      shell: micromamba-shell {0}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[test]
         
     - name: Run tests
       run: pytest tests/ -v --tb=short
-      shell: micromamba-shell {0}
-      
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
-        path: |
-          .coverage
-          htmlcov/
-        retention-days: 7
-        
+
   coverage:
     needs: lint
     runs-on: ubuntu-latest
@@ -100,28 +66,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Micromamba
-      uses: mamba-org/setup-micromamba@v1
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        environment-name: coverage-env
-        create-args: >-
-          python=3.13
-          pip
-          numpy>=2.2
-          pytest>=7.0.0
-          pytest-asyncio>=0.21.0
-          coverage[toml]
-          pytest-cov
-        cache-environment: true
+        python-version: '3.13'
     
-    - name: Install package
-      run: pip install -e .
-      shell: micromamba-shell {0}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[test]
+        pip install coverage[toml] pytest-cov
         
     - name: Run tests with coverage
       run: |
         pytest tests/ --cov=eventkit --cov-report=xml --cov-report=html --cov-report=term
-      shell: micromamba-shell {0}
         
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
