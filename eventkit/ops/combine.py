@@ -1,9 +1,13 @@
 import functools
 from collections import defaultdict, deque
+from typing import TYPE_CHECKING, Optional, Any, DefaultDict
 
 from ..event import Event
 from ..util import NO_VALUE
 from .op import Op
+
+if TYPE_CHECKING:
+    from typing import List, Tuple
 
 
 class Fork(list):
@@ -18,22 +22,22 @@ class Fork(list):
         return joiner
 
     def concat(self) -> "Concat":
-        return self.join(Concat())
+        return self.join(Concat())  # type: ignore[return-value]
 
     def merge(self) -> "Merge":
-        return self.join(Merge())
+        return self.join(Merge())  # type: ignore[return-value]
 
     def switch(self) -> "Switch":
-        return self.join(Switch())
+        return self.join(Switch())  # type: ignore[return-value]
 
     def zip(self) -> "Zip":
-        return self.join(Zip())
+        return self.join(Zip())  # type: ignore[return-value]
 
     def ziplatest(self) -> "Ziplatest":
-        return self.join(Ziplatest())
+        return self.join(Ziplatest())  # type: ignore[return-value]
 
     def chain(self) -> "Chain":
-        return self.join(Chain())
+        return self.join(Chain())  # type: ignore[return-value]
 
 
 class JoinOp(Op):
@@ -219,6 +223,8 @@ class Chain(AddableJoinOp):
 
 class Zip(JoinOp):
     __slots__ = ("_results", "_source2cbs", "_num_ready")
+    
+    _source2cbs: Optional[DefaultDict[Any, Any]]
 
     def __init__(self, *sources):
         JoinOp.__init__(self)
@@ -257,12 +263,15 @@ class Zip(JoinOp):
             for source, cbs in self._source2cbs.items():
                 for cb in cbs:
                     source.disconnect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs = None
+            self._source2cbs = None  # type: ignore[assignment]
             self.set_done()
 
 
 class Ziplatest(JoinOp):
     __slots__ = ("_values", "_is_primed", "_source2cbs")
+    
+    _values: Tuple[Any, ...]
+    _source2cbs: Optional[DefaultDict[Any, Any]]
 
     def __init__(self, *sources, partial=True):
         JoinOp.__init__(self)
@@ -272,7 +281,7 @@ class Ziplatest(JoinOp):
             self._set_sources(*sources)
 
     def _set_sources(self, *sources):
-        sources = [Event.create(s) for s in sources]
+        sources = tuple(Event.create(s) for s in sources)  # type: ignore[assignment]
         self._sources = deque(s for s in sources if not s.done())
         if not self._sources:
             self.set_done()
@@ -296,5 +305,5 @@ class Ziplatest(JoinOp):
             for source, cbs in self._source2cbs.items():
                 for cb in cbs:
                     source.disconnect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs = None
+            self._source2cbs = None  # type: ignore[assignment]
             self.set_done()
