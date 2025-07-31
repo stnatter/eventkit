@@ -34,7 +34,7 @@ test_eventkit.py
 trading-environment-example.yaml
 
 # GitHub Actions (also deleted)
-.github/
+# .github/
 
 # IDE and editor files
 .vscode/
