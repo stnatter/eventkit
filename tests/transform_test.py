@@ -1,5 +1,5 @@
-import unittest
 import asyncio
+import unittest
 from collections import namedtuple
 
 import numpy as np
@@ -86,7 +86,9 @@ class TransformTest(unittest.TestCase):
     def test_sync_star_map(self):
         event = Event.sequence(array)
         event = event.map(lambda i: (i, i)).star().map(lambda x, y: x / 2 - y)
-        self.assertEqual(event.run(), [x / 2 - y for x, y in zip(array, array)])
+        self.assertEqual(
+            event.run(), [x / 2 - y for x, y in zip(array, array, strict=False)]
+        )
 
     def test_async_map(self):
         async def coro(x):
@@ -109,7 +111,7 @@ class TransformTest(unittest.TestCase):
         a = A()
         event = Event.range(10).map(a.coro, ordered=False)
         result = set(event.run())
-        expected = set(i * i for i in reversed(range(10)))
+        expected = {i * i for i in reversed(range(10))}
         self.assertEqual(result, expected)
 
     def test_mergemap(self):

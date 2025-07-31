@@ -35,7 +35,7 @@ class AggregateTest(unittest.TestCase):
 
     def test_pairwaise(self):
         event = Event.sequence(array).pairwise()
-        self.assertEqual(event.run(), list(zip(array, array[1:])))
+        self.assertEqual(event.run(), list(zip(array, array[1:], strict=False)))
 
     def test_chunk(self):
         event = Event.sequence(array).chunk(3)

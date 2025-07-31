@@ -12,7 +12,9 @@ class CombineTest(unittest.TestCase):
         e1 = Event.sequence(array1, interval=0.01)
         e2 = Event.sequence(array2, interval=0.01).delay(0.001)
         event = e1.merge(e2)
-        self.assertEqual(event.run(), [i for j in zip(array1, array2) for i in j])
+        self.assertEqual(
+            event.run(), [i for j in zip(array1, array2, strict=False) for i in j]
+        )
 
     def test_switch(self):
         e1 = Event.sequence(array1, interval=0.01)
@@ -39,12 +41,12 @@ class CombineTest(unittest.TestCase):
         e1 = Event.sequence(array1)
         e2 = Event.sequence(array2).delay(0.001)
         event = e1.zip(e2)
-        self.assertEqual(event.run(), list(zip(array1, array2)))
+        self.assertEqual(event.run(), list(zip(array1, array2, strict=False)))
 
     def test_zip_self(self):
         e1 = Event.sequence(array1)
         event = e1.zip(e1)
-        self.assertEqual(event.run(), list(zip(array1, array1)))
+        self.assertEqual(event.run(), list(zip(array1, array1, strict=False)))
 
     def test_ziplatest(self):
         e1 = Event.sequence([0, 1], interval=0.01)

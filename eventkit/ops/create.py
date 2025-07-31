@@ -1,7 +1,7 @@
 import asyncio
 import itertools
 import time
-from typing import Optional, Any
+from typing import Any
 
 from ..event import Event
 from ..util import NO_VALUE, get_event_loop, timerange
@@ -39,8 +39,8 @@ class Wait(Event):
 
 class Aiterate(Event):
     __slots__ = ("_task",)
-    
-    _task: Optional[asyncio.Task[Any]]
+
+    _task: asyncio.Task[Any] | None
 
     def __init__(self, ait):
         Event.__init__(self, ait.__qualname__)

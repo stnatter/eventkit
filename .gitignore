@@ -98,3 +98,4 @@ logs/
 # File type filters (too broad, removing)
 # .json
 # .bat
+test

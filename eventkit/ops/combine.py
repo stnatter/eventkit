@@ -1,13 +1,13 @@
 import functools
 from collections import defaultdict, deque
-from typing import TYPE_CHECKING, Optional, Any, DefaultDict
+from typing import TYPE_CHECKING, Any
 
 from ..event import Event
 from ..util import NO_VALUE
 from .op import Op
 
 if TYPE_CHECKING:
-    from typing import List, Tuple
+    pass
 
 
 class Fork(list):
@@ -22,22 +22,22 @@ class Fork(list):
         return joiner
 
     def concat(self) -> "Concat":
-        return self.join(Concat())  # type: ignore[return-value]
+        return self.join(Concat())  # type: ignore[no-any-return]
 
     def merge(self) -> "Merge":
-        return self.join(Merge())  # type: ignore[return-value]
+        return self.join(Merge())  # type: ignore[no-any-return]
 
     def switch(self) -> "Switch":
-        return self.join(Switch())  # type: ignore[return-value]
+        return self.join(Switch())  # type: ignore[no-any-return]
 
     def zip(self) -> "Zip":
-        return self.join(Zip())  # type: ignore[return-value]
+        return self.join(Zip())  # type: ignore[no-any-return]
 
     def ziplatest(self) -> "Ziplatest":
-        return self.join(Ziplatest())  # type: ignore[return-value]
+        return self.join(Ziplatest())  # type: ignore[no-any-return]
 
     def chain(self) -> "Chain":
-        return self.join(Chain())  # type: ignore[return-value]
+        return self.join(Chain())  # type: ignore[no-any-return]
 
 
 class JoinOp(Op):
@@ -197,7 +197,8 @@ class Chain(AddableJoinOp):
             q: deque = deque()
             self._qq.append(q)
             source += cb
-            self._source2cbs[source].append(cb)
+            if self._source2cbs is not None:
+                self._source2cbs[source].append(cb)
         self._sources.append(source)
 
     def on_source_done(self, source):
@@ -223,8 +224,8 @@ class Chain(AddableJoinOp):
 
 class Zip(JoinOp):
     __slots__ = ("_results", "_source2cbs", "_num_ready")
-    
-    _source2cbs: Optional[DefaultDict[Any, Any]]
+
+    _source2cbs: defaultdict[Any, list[Any]] | None
 
     def __init__(self, *sources):
         JoinOp.__init__(self)
@@ -242,7 +243,8 @@ class Zip(JoinOp):
         for i, source in enumerate(self._sources):
             cb = functools.partial(self._on_source_i, i)
             source.connect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs[source].append(cb)
+            if self._source2cbs is not None:
+                self._source2cbs[source].append(cb)
 
     def _on_source_i(self, i, *args):
         q = self._results[i]
@@ -260,18 +262,19 @@ class Zip(JoinOp):
     def on_source_done(self, source):
         self._sources.remove(source)
         if not self._sources:
-            for source, cbs in self._source2cbs.items():
-                for cb in cbs:
-                    source.disconnect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs = None  # type: ignore[assignment]
+            if self._source2cbs is not None:
+                for source, cbs in self._source2cbs.items():
+                    for cb in cbs:
+                        source.disconnect(cb, self.on_source_error, self.on_source_done)
+                self._source2cbs = None
             self.set_done()
 
 
 class Ziplatest(JoinOp):
     __slots__ = ("_values", "_is_primed", "_source2cbs")
-    
-    _values: Tuple[Any, ...]
-    _source2cbs: Optional[DefaultDict[Any, Any]]
+
+    _values: list[Any]
+    _source2cbs: defaultdict[Any, list[Any]] | None
 
     def __init__(self, *sources, partial=True):
         JoinOp.__init__(self)
@@ -281,16 +284,17 @@ class Ziplatest(JoinOp):
             self._set_sources(*sources)
 
     def _set_sources(self, *sources):
-        sources = tuple(Event.create(s) for s in sources)  # type: ignore[assignment]
-        self._sources = deque(s for s in sources if not s.done())
+        event_sources = [Event.create(s) for s in sources]
+        self._sources = deque(s for s in event_sources if not s.done())
         if not self._sources:
             self.set_done()
             return
-        self._values = [s.value() for s in sources]
+        self._values = [s.value() for s in event_sources]
         for i, source in enumerate(self._sources):
             cb = functools.partial(self._on_source_i, i)
             source.connect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs[source].append(cb)
+            if self._source2cbs is not None:
+                self._source2cbs[source].append(cb)
 
     def _on_source_i(self, i, *args):
         self._values[i] = args[0] if len(args) == 1 else args if args else NO_VALUE
@@ -302,8 +306,9 @@ class Ziplatest(JoinOp):
     def on_source_done(self, source):
         self._sources.remove(source)
         if not self._sources:
-            for source, cbs in self._source2cbs.items():
-                for cb in cbs:
-                    source.disconnect(cb, self.on_source_error, self.on_source_done)
-            self._source2cbs = None  # type: ignore[assignment]
+            if self._source2cbs is not None:
+                for source, cbs in self._source2cbs.items():
+                    for cb in cbs:
+                        source.disconnect(cb, self.on_source_error, self.on_source_done)
+                self._source2cbs = None
             self.set_done()

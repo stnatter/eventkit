@@ -24,16 +24,12 @@ jobs:
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install ruff black
+        pip install ruff
     
     - name: Run Ruff linter
       run: |
         ruff check eventkit tests || true
         ruff format --check eventkit tests || true
-    
-    - name: Run Black formatter
-      run: |
-        black --check eventkit tests
     
     - name: Setup Micromamba for mypy
       uses: mamba-org/setup-micromamba@v1

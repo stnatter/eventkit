@@ -3,10 +3,7 @@ import logging
 import types
 import weakref
 from collections.abc import AsyncIterable, Awaitable, Callable, Iterable
-from typing import (
-    TYPE_CHECKING,
-    Optional,
-)
+from typing import TYPE_CHECKING, Optional
 from typing import Any as AnyType
 
 if TYPE_CHECKING:
@@ -414,7 +411,11 @@ class Event:
                     yield (
                         args
                         if tuples
-                        else args[0] if len(args) == 1 else args if args else NO_VALUE
+                        else args[0]
+                        if len(args) == 1
+                        else args
+                        if args
+                        else NO_VALUE
                     )
                 elif what == "ERROR":
                     raise args
@@ -1362,9 +1363,7 @@ from .ops.aggregate import (
     Sum,
 )
 from .ops.aggregate import List as ListOp
-from .ops.array import (
-    Array,
-)
+from .ops.array import Array
 from .ops.combine import (
     AddableJoinOp,
     Chain,

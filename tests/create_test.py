@@ -28,4 +28,4 @@ class CreateTest(unittest.TestCase):
     def test_marble(self):
         s = "   a b c   d e f"
         event = Event.marble(s, interval=0.001)
-        self.assertEqual(event.run(), [c for c in "abcdef"])
+        self.assertEqual(event.run(), list("abcdef"))
