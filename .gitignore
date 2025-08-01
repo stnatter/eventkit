@@ -99,3 +99,4 @@ logs/
 # .json
 # .bat
 test
+check.sh
