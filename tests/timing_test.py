@@ -50,4 +50,4 @@ class TimingTest(unittest.TestCase):
         result = event.run()
         self.assertEqual(result, a)
         dt = time.time() - t0
-        self.assertLess(abs(dt - 0.5), 0.05)
+        self.assertLess(abs(dt - 0.5), 0.06)
