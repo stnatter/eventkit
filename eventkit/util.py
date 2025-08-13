@@ -31,8 +31,8 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
 class MainEventLoop:
     """Lazy event loop holder."""
     _loop: asyncio.AbstractEventLoop | None = None
-    
-    @classmethod 
+
+    @classmethod
     def get(cls) -> asyncio.AbstractEventLoop:
         if cls._loop is None:
             cls._loop = get_event_loop()

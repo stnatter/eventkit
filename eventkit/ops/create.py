@@ -4,7 +4,7 @@ import time
 from typing import Any
 
 from ..event import Event
-from ..util import NO_VALUE, get_event_loop, timerange
+from ..util import NO_VALUE, timerange
 from .op import Op
 
 
