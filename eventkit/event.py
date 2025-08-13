@@ -98,9 +98,7 @@ class Event:
             NO_VALUE if v is NO_VALUE else v[0] if len(v) == 1 else v if v else NO_VALUE
         )
 
-    def connect(
-        self, listener, error=None, done=None, keep_ref: bool = False
-    ) -> Self:
+    def connect(self, listener, error=None, done=None, keep_ref: bool = False) -> Self:
         """
         Connect a listener to this event. If the listener is added multiple
         times then it is invoked just as many times on emit.
@@ -224,9 +222,15 @@ class Event:
                     try:
                         asyncio.create_task(result)
                     except RuntimeError:
-                        # No running loop - get or create one and schedule task
-                        loop = get_event_loop()
-                        loop.create_task(result)
+                        # No running loop - try to use the test's approach first
+                        try:
+                            loop = asyncio.get_event_loop()
+                            loop.create_task(result)
+                        except RuntimeError:
+                            # Create a new loop as last resort
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            loop.create_task(result)
 
             except Exception as error:
                 if self.error_event is not None and len(self.error_event):
@@ -241,7 +245,7 @@ class Event:
         Threadsafe version of :meth:`emit` that doesn't invoke the
         listeners directly but via the event loop of the main thread.
         """
-        main_event_loop.call_soon_threadsafe(self.emit, *args)
+        main_event_loop.get().call_soon_threadsafe(self.emit, *args)
 
     def clear(self) -> None:
         """
@@ -264,7 +268,7 @@ class Event:
 
         .. note::
 
-            When running inside a Jupyter notebook, use the top-level 
+            When running inside a Jupyter notebook, use the top-level
             ``await`` statement instead::
 
                 await event.list()
@@ -277,8 +281,12 @@ class Event:
                 "Use 'await event.list()' instead."
             )
         except RuntimeError:
-            # No running loop - create one and run
-            loop = get_event_loop()
+            # No running loop - use policy to get the right one
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             return loop.run_until_complete(self.list())
 
     def pipe(self, *targets: "Event") -> "Event":

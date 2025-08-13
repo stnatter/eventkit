@@ -27,7 +27,18 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
         return loop
 
 
-main_event_loop = get_event_loop()
+# Lazy initialization - create main loop when needed
+class MainEventLoop:
+    """Lazy event loop holder."""
+    _loop: asyncio.AbstractEventLoop | None = None
+    
+    @classmethod 
+    def get(cls) -> asyncio.AbstractEventLoop:
+        if cls._loop is None:
+            cls._loop = get_event_loop()
+        return cls._loop
+
+main_event_loop = MainEventLoop()
 
 
 async def timerange(

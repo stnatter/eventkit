@@ -38,18 +38,22 @@ class Wait(Event):
 
 
 class Aiterate(Event):
-    __slots__ = ("_task",)
+    __slots__ = ("_task", "_ait")
 
     _task: asyncio.Task[Any] | None
 
     def __init__(self, ait):
         Event.__init__(self, ait.__qualname__)
-        # Use the original working approach: always create the task
+        # Create task immediately like original code
         try:
             self._task = asyncio.create_task(self._looper(ait))
         except RuntimeError:
-            # No running loop - get or create one
-            loop = get_event_loop()
+            # No running loop - use policy approach
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             self._task = loop.create_task(self._looper(ait))
 
     async def _looper(self, ait):
