@@ -4,8 +4,21 @@ import unittest
 import eventkit as ev
 from eventkit import Event
 
-loop = asyncio.get_event_loop()
-run = loop.run_until_complete
+
+def run(coro):
+    """Helper to run coroutines in tests for Python 3.14 compatibility."""
+    try:
+        loop = asyncio.get_running_loop()
+        # We're already in an async context, can't use run_until_complete
+        raise RuntimeError("Cannot run nested event loop")
+    except RuntimeError:
+        # No running loop - use the same approach as Event.run()
+        try:
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(coro)
+        except RuntimeError:
+            # In Python 3.14, get_event_loop() fails, use asyncio.run
+            return asyncio.run(coro)
 
 
 class Object:
