@@ -1,12 +1,4 @@
-"""Event-driven data pipelines.
-
-Note: You may see RuntimeWarnings about "coroutine was never awaited" when
-using EventKit. These are harmless and expected - the coroutines are properly
-executed when run() is called. To suppress these warnings:
-
-    import warnings
-    warnings.filterwarnings("ignore", ".*was never awaited", RuntimeWarning)
-"""
+"""Event-driven data pipelines."""
 
 from .event import Event
 from .ops.aggregate import (

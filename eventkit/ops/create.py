@@ -48,9 +48,7 @@ class Aiterate(Event):
         try:
             self._task = asyncio.create_task(self._looper(ait))
         except RuntimeError:
-            # No running loop - get/create one and use it
-            # Note: This may generate a "coroutine never awaited" warning
-            # but the task will be properly executed when run() is called
+            # No running loop - get or create one
             loop = get_event_loop()
             self._task = loop.create_task(self._looper(ait))
 

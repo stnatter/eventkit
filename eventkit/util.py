@@ -17,26 +17,14 @@ NO_VALUE = _NoValue()
 
 
 def get_event_loop() -> asyncio.AbstractEventLoop:
-    """Get asyncio event loop, running or not. Modern approach with backward compatibility."""
+    """Get asyncio event loop for Python 3.13+."""
     try:
-        # If there's a running loop, return it (uvloop compatible)
         return asyncio.get_running_loop()
     except RuntimeError:
-        # No running loop - use the most compatible approach
-        # We need to set the loop for task creation to work properly
-        try:
-            # Try getting the current thread's loop first (may show deprecation warning)
-            import warnings
-
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", DeprecationWarning)
-                loop = asyncio.get_event_loop()
-                return loop
-        except RuntimeError:
-            # Create and set a new loop
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            return loop
+        # No running loop - create and set a new one
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
 
 
 main_event_loop = get_event_loop()

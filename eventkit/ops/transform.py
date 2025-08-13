@@ -246,7 +246,7 @@ class Map(Op):
         try:
             task = asyncio.create_task(coro)
         except RuntimeError:
-            # No running loop - create task when run() is called
+            # No running loop - get or create one
             loop = get_event_loop()
             task = loop.create_task(coro)
         task.add_done_callback(self._on_task_done)

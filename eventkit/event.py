@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import types
 import weakref
 from collections.abc import AsyncIterable, Awaitable, Callable, Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Self
 from typing import Any as AnyType
 
 if TYPE_CHECKING:
@@ -36,13 +38,13 @@ class Event:
     NO_VALUE = NO_VALUE
     logger = logging.getLogger(__name__)
 
-    error_event: Optional["Event"]
-    done_event: Optional["Event"]
+    error_event: "Event" | None
+    done_event: "Event" | None
     _name: str
     _value: AnyType
     _slots: list[list]
     _done: bool
-    _source: Optional["Event"]
+    _source: "Event" | None
 
     def __init__(self, name: str = "", _with_error_done_events: bool = True):
         self.error_event = None
@@ -98,7 +100,7 @@ class Event:
 
     def connect(
         self, listener, error=None, done=None, keep_ref: bool = False
-    ) -> "Event":
+    ) -> Self:
         """
         Connect a listener to this event. If the listener is added multiple
         times then it is invoked just as many times on emit.
@@ -222,7 +224,7 @@ class Event:
                     try:
                         asyncio.create_task(result)
                     except RuntimeError:
-                        # No running loop - create task on current/new loop
+                        # No running loop - get or create one and schedule task
                         loop = get_event_loop()
                         loop.create_task(result)
 
@@ -262,23 +264,20 @@ class Event:
 
         .. note::
 
-            When running inside a Jupyter notebook this will give an error
-            that the asyncio event loop is already running. This can be
-            remedied by applying
-            `nest_asyncio <https://github.com/erdewit/nest_asyncio>`_
-            or by using the top-level ``await`` statement of Jupyter::
+            When running inside a Jupyter notebook, use the top-level 
+            ``await`` statement instead::
 
                 await event.list()
         """
         try:
-            # Check if we're already in an async context (e.g., uvloop is running)
+            # Check if we're already in an async context
             asyncio.get_running_loop()
             raise RuntimeError(
                 "Cannot use .run() from within an async context. "
                 "Use 'await event.list()' instead."
             )
         except RuntimeError:
-            # No running loop - use event loop approach but with deprecation warnings suppressed
+            # No running loop - create one and run
             loop = get_event_loop()
             return loop.run_until_complete(self.list())
 
@@ -332,7 +331,7 @@ class Event:
             fork.append(t)
         return fork
 
-    def set_source(self, source: Optional["Event"]) -> None:
+    def set_source(self, source: "Event" | None) -> None:
         self._source = source
 
     def _onFinalize(self, ref: AnyType) -> None:
