@@ -30,6 +30,7 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
 # Lazy initialization - create main loop when needed
 class MainEventLoop:
     """Lazy event loop holder."""
+
     _loop: asyncio.AbstractEventLoop | None = None
 
     @classmethod
@@ -37,6 +38,7 @@ class MainEventLoop:
         if cls._loop is None:
             cls._loop = get_event_loop()
         return cls._loop
+
 
 main_event_loop = MainEventLoop()
 
