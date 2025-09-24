@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Self
 from typing import Any as AnyType
 
 if TYPE_CHECKING:
-    from .ops.combine import Fork
+    pass
 
 from .types import EventType, ForkType
 from .util import NO_VALUE, main_event_loop
@@ -332,6 +332,7 @@ class Event:
                 or ``Event`` constructors that need no arguments.
         """
         from .ops.combine import Fork
+
         fork = Fork()
         for t in targets:
             t = Event.create(t)
@@ -564,6 +565,7 @@ class Event:
             future: Future to wait on.
         """
         from .ops.create import Wait
+
         return Wait(future)
 
     @staticmethod
@@ -1376,7 +1378,6 @@ from .ops.combine import (
     AddableJoinOp,
     Chain,
     Concat,
-    Fork,
     Merge,
     Switch,
     Zip,
