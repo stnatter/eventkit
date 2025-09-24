@@ -9,7 +9,6 @@ description = "Event-driven data pipelines"
 readme = "README.rst"
 license = "BSD-3-Clause"
 authors = [
-    {name = "Steffen M Natter", email = "stnatter@gmail.com"},
     {name = "Ewald R. de Wit (original creator)"}
 ]
 maintainers = [
@@ -30,7 +29,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "numpy>=1.2.2",
+    "numpy>=2.3.0",
 ]
 
 [project.optional-dependencies]

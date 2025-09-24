@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import asyncio
 import logging
 import types
@@ -11,6 +9,7 @@ from typing import Any as AnyType
 if TYPE_CHECKING:
     from .ops.combine import Fork
 
+from .types import EventType, ForkType
 from .util import NO_VALUE, main_event_loop
 
 
@@ -38,13 +37,13 @@ class Event:
     NO_VALUE = NO_VALUE
     logger = logging.getLogger(__name__)
 
-    error_event: Event | None
-    done_event: Event | None
+    error_event: "EventType | None"
+    done_event: "EventType | None"
     _name: str
     _value: AnyType
     _slots: list[list]
     _done: bool
-    _source: Event | None
+    _source: "EventType | None"
 
     def __init__(self, name: str = "", _with_error_done_events: bool = True):
         self.error_event = None
@@ -289,7 +288,7 @@ class Event:
                 asyncio.set_event_loop(loop)
             return loop.run_until_complete(self.list())
 
-    def pipe(self, *targets: Event) -> Event:
+    def pipe(self, *targets: "EventType") -> "EventType":
         """
         Form several events into a pipe::
 
@@ -314,7 +313,7 @@ class Event:
             source = t
         return source
 
-    def fork(self, *targets: Event) -> Fork:
+    def fork(self, *targets: "EventType") -> "ForkType":
         """
         Fork this event into one or more target events.
         Square brackets can be used as a synonym::
@@ -332,6 +331,7 @@ class Event:
             targets: One or more events that have no source yet,
                 or ``Event`` constructors that need no arguments.
         """
+        from .ops.combine import Fork
         fork = Fork()
         for t in targets:
             t = Event.create(t)
@@ -339,7 +339,7 @@ class Event:
             fork.append(t)
         return fork
 
-    def set_source(self, source: Event | None) -> None:
+    def set_source(self, source: "EventType | None") -> None:
         self._source = source
 
     def _onFinalize(self, ref: AnyType) -> None:
@@ -445,7 +445,7 @@ class Event:
     def __bool__(self):
         return True
 
-    def __getitem__(self, fork_targets) -> Fork:
+    def __getitem__(self, fork_targets) -> "ForkType":
         if not hasattr(fork_targets, "__iter__"):
             fork_targets = (fork_targets,)
         return self.fork(*fork_targets)
@@ -553,7 +553,7 @@ class Event:
             raise ValueError(f"Invalid type: {obj}")
 
     @staticmethod
-    def wait(future: Awaitable) -> Wait:
+    def wait(future: Awaitable) -> "Wait":
         """
         Create a new event that emits the value of the
         awaitable when it becomes available and then set this event done.
@@ -563,10 +563,11 @@ class Event:
         Args:
             future: Future to wait on.
         """
+        from .ops.create import Wait
         return Wait(future)
 
     @staticmethod
-    def aiterate(ait: AsyncIterable) -> Aiterate:
+    def aiterate(ait: AsyncIterable) -> "Aiterate":
         """
         Create a new event that emits the yielded values from the
         asynchronous iterator.
@@ -587,7 +588,7 @@ class Event:
     @staticmethod
     def sequence(
         values: Iterable, interval: float = 0, times: Iterable[float] | None = None
-    ) -> Sequence:
+    ) -> "Sequence":
         """
         Create a new event that emits the given values.
         Supply at most one ``interval`` or ``times``.
@@ -606,7 +607,7 @@ class Event:
         count=1,
         interval: float = 0,
         times: Iterable[float] | None = None,
-    ) -> Repeat:
+    ) -> "Repeat":
         """
         Create a new event that repeats ``value`` a number of ``count`` times.
 
@@ -622,7 +623,7 @@ class Event:
     @staticmethod
     def range(
         *args, interval: float = 0, times: Iterable[float] | None = None
-    ) -> Range:
+    ) -> "Range":
         """
         Create a new event that emits the values from a range.
 
@@ -635,7 +636,7 @@ class Event:
         return Range(*args, interval=interval, times=times)
 
     @staticmethod
-    def timerange(start=0, end=None, step=1) -> Timerange:
+    def timerange(start=0, end=None, step=1) -> "Timerange":
         """
         Create a new event that emits the datetime value, at that datetime,
         from a range of datetimes.
@@ -658,7 +659,7 @@ class Event:
         return Timerange(start, end, step)
 
     @staticmethod
-    def timer(interval: float, count: int | None = None) -> Timer:
+    def timer(interval: float, count: int | None = None) -> "Timer":
         """
         Create a new timer event that emits at regularly paced intervals
         the number of seconds since starting it.
@@ -672,7 +673,7 @@ class Event:
     @staticmethod
     def marble(
         s: str, interval: float = 0, times: Iterable[float] | None = None
-    ) -> Marble:
+    ) -> "Marble":
         """
         Create a new event that emits the values from a Rx-type marble string.
 
@@ -687,7 +688,7 @@ class Event:
 
     # dot access to operators
 
-    def filter(self, predicate=bool) -> Filter:
+    def filter(self, predicate=bool) -> "Filter":
         """
         For every source value, apply predicate and re-emit when True.
 
@@ -697,7 +698,7 @@ class Event:
         """
         return Filter(predicate, self)
 
-    def skip(self, count: int = 1) -> Skip:
+    def skip(self, count: int = 1) -> "Skip":
         """
         Drop the first ``count`` values from source and follow the source
         after that.
@@ -707,7 +708,7 @@ class Event:
         """
         return Skip(count, self)
 
-    def take(self, count: int = 1) -> Take:
+    def take(self, count: int = 1) -> "Take":
         """
         Re-emit first ``count`` values from the source and then end.
 
@@ -716,7 +717,7 @@ class Event:
         """
         return Take(count, self)
 
-    def takewhile(self, predicate=bool) -> TakeWhile:
+    def takewhile(self, predicate=bool) -> "TakeWhile":
         """
         Re-emit values from the source until the predicate becomes False
         and then end.
@@ -727,7 +728,7 @@ class Event:
         """
         return TakeWhile(predicate, self)
 
-    def dropwhile(self, predicate=lambda x: not x) -> DropWhile:
+    def dropwhile(self, predicate=lambda x: not x) -> "DropWhile":
         """
         Drop source values until the predicate becomes False and after that
         re-emit everything from the source.
@@ -738,7 +739,7 @@ class Event:
         """
         return DropWhile(predicate, self)
 
-    def takeuntil(self, notifier: Event) -> TakeUntil:
+    def takeuntil(self, notifier: "Event") -> "TakeUntil":
         """
         Re-emit values from the source until the ``notifier`` emits
         and then end. If the notifier ends without any emit then
@@ -749,7 +750,7 @@ class Event:
         """
         return TakeUntil(notifier, self)
 
-    def constant(self, constant) -> Constant:
+    def constant(self, constant) -> "Constant":
         """
         On emit of the source emit a constant value::
 
@@ -760,7 +761,7 @@ class Event:
         """
         return Constant(constant, self)
 
-    def iterate(self, it) -> Iterate:
+    def iterate(self, it) -> "Iterate":
         """
         On emit of the source, emit the next value from an iterator::
 
@@ -775,7 +776,7 @@ class Event:
         """
         return Iterate(it, self)
 
-    def count(self, start=0, step=1) -> Count:
+    def count(self, start=0, step=1) -> "Count":
         """
         Count and emit the number of source emits::
 
@@ -787,7 +788,7 @@ class Event:
         """
         return Count(start, step, self)
 
-    def enumerate(self, start=0, step=1) -> Enumerate:
+    def enumerate(self, start=0, step=1) -> "Enumerate":
         """
         Add a count to every source value::
 
@@ -799,7 +800,7 @@ class Event:
         """
         return Enumerate(start, step, self)
 
-    def timestamp(self) -> Timestamp:
+    def timestamp(self) -> "Timestamp":
         """
         Add a timestamp (from time.time()) to every source value::
 
@@ -810,7 +811,7 @@ class Event:
         """
         return Timestamp(self)
 
-    def partial(self, *left_args) -> Partial:
+    def partial(self, *left_args) -> "Partial":
         """
         Pad source values with extra arguments on the left::
 
@@ -821,7 +822,7 @@ class Event:
         """
         return Partial(*left_args, source=self)
 
-    def partial_right(self, *right_args) -> PartialRight:
+    def partial_right(self, *right_args) -> "PartialRight":
         """
         Pad source values with extra arguments on the right::
 
@@ -832,7 +833,7 @@ class Event:
         """
         return PartialRight(*right_args, source=self)
 
-    def star(self) -> Star:
+    def star(self) -> "Star":
         """
         Unpack a source tuple into positional arguments, similar to the
         star operator::
@@ -843,7 +844,7 @@ class Event:
         """
         return Star(self)
 
-    def pack(self) -> Pack:
+    def pack(self) -> "Pack":
         """
         Pack positional arguments into a tuple::
 
@@ -853,7 +854,7 @@ class Event:
         """
         return Pack(self)
 
-    def pluck(self, *selections: int | str) -> Pluck:
+    def pluck(self, *selections: int | str) -> "Pluck":
         """
         Extract arguments or nested properties from the source values.
 
@@ -883,7 +884,7 @@ class Event:
         """
         return Pluck(*selections, source=self)
 
-    def map(self, func, timeout=None, ordered=True, task_limit=None) -> Map:
+    def map(self, func, timeout=None, ordered=True, task_limit=None) -> "Map":
         """
         Apply a sync or async function to source values using
         positional arguments::
@@ -910,7 +911,7 @@ class Event:
         """
         return Map(func, timeout, ordered, task_limit, self)
 
-    def emap(self, constr, joiner: AddableJoinOp) -> Emap:
+    def emap(self, constr, joiner: "AddableJoinOp") -> "Emap":
         """
         Higher-order event map that creates a new ``Event`` instance
         for every source value::
@@ -926,7 +927,7 @@ class Event:
         """
         return Emap(constr, joiner, self)
 
-    def mergemap(self, constr) -> Mergemap:
+    def mergemap(self, constr) -> "Mergemap":
         """
         :meth:`emap` that uses :meth:`merge` to combine the nested events::
 
@@ -941,7 +942,7 @@ class Event:
         """
         return Mergemap(constr, self)
 
-    def concatmap(self, constr) -> Concatmap:
+    def concatmap(self, constr) -> "Concatmap":
         """
         :meth:`emap` that uses :meth:`concat` to combine the nested events::
 
@@ -956,7 +957,7 @@ class Event:
         """
         return Concatmap(constr, self)
 
-    def chainmap(self, constr) -> Chainmap:
+    def chainmap(self, constr) -> "Chainmap":
         """
         :meth:`emap` that uses :meth:`chain` to combine the nested events::
 
@@ -971,7 +972,7 @@ class Event:
         """
         return Chainmap(constr, self)
 
-    def switchmap(self, constr) -> Switchmap:
+    def switchmap(self, constr) -> "Switchmap":
         """
         :meth:`emap` that uses :meth:`switch` to combine the nested events::
 
@@ -986,7 +987,7 @@ class Event:
         """
         return Switchmap(constr, self)
 
-    def reduce(self, func, initializer=NO_VALUE) -> Reduce:
+    def reduce(self, func, initializer=NO_VALUE) -> "Reduce":
         """
         Apply a two-argument reduction function to the previous reduction
         result and the current value and emit the new reduction result.
@@ -1005,19 +1006,19 @@ class Event:
         """
         return Reduce(func, initializer, self)
 
-    def min(self) -> Min:
+    def min(self) -> "Min":
         """
         Minimum value.
         """
         return Min(self)
 
-    def max(self) -> Max:
+    def max(self) -> "Max":
         """
         Maximum value.
         """
         return Max(self)
 
-    def sum(self, start=0) -> Sum:
+    def sum(self, start=0) -> "Sum":
         """
         Total sum.
 
@@ -1026,7 +1027,7 @@ class Event:
         """
         return Sum(start, self)
 
-    def product(self, start=1) -> Product:
+    def product(self, start=1) -> "Product":
         """
         Total product.
 
@@ -1035,25 +1036,25 @@ class Event:
         """
         return Product(start, self)
 
-    def mean(self) -> Mean:
+    def mean(self) -> "Mean":
         """
         Total average.
         """
         return Mean(self)
 
-    def any(self) -> Any:
+    def any(self) -> "Any":
         """
         Test if predicate holds for at least one source value.
         """
         return Any(self)
 
-    def all(self) -> All:
+    def all(self) -> "All":
         """
         Test if predicate holds for all source values.
         """
         return All(self)
 
-    def ema(self, n: int | None = None, weight: float | None = None) -> Ema:
+    def ema(self, n: int | None = None, weight: float | None = None) -> "Ema":
         """
         Exponential moving average.
 
@@ -1066,7 +1067,7 @@ class Event:
         """
         return Ema(n, weight, self)
 
-    def previous(self, count: int = 1) -> Previous:
+    def previous(self, count: int = 1) -> "Previous":
         """
         For every source value, emit the ``count``-th previous value::
 
@@ -1080,7 +1081,7 @@ class Event:
         """
         return Previous(count, self)
 
-    def pairwise(self) -> Pairwise:
+    def pairwise(self) -> "Pairwise":
         """
         Emit ``(previous_source_value, current_source_value)`` tuples.
         Starts emitting on the second source emit::
@@ -1090,13 +1091,13 @@ class Event:
         """
         return Pairwise(self)
 
-    def changes(self) -> Changes:
+    def changes(self) -> "Changes":
         """
         Emit only source values that have changed from the previous value.
         """
         return Changes(self)
 
-    def unique(self, key=None) -> Unique:
+    def unique(self, key=None) -> "Unique":
         """
         Emit only unique values, dropping values that have already
         been emitted.
@@ -1108,19 +1109,19 @@ class Event:
         """
         return Unique(key, self)
 
-    def last(self) -> Last:
+    def last(self) -> "Last":
         """
         Wait until source has ended and re-emit its last value.
         """
         return Last(self)
 
-    def list(self) -> ListOp:
+    def list(self) -> "ListOp":
         """
         Collect all source values and emit as list when the source ends.
         """
         return ListOp(self)
 
-    def deque(self, count=0) -> Deque:
+    def deque(self, count=0) -> "Deque":
         """
         Emit a ``deque`` with the last ``count`` values from the source
         (or less in the lead-in phase).
@@ -1130,7 +1131,7 @@ class Event:
         """
         return Deque(count, self)
 
-    def array(self, count=0) -> Array:
+    def array(self, count=0) -> "Array":
         """
         Emit a numpy array with the last ``count`` values from the source
         (or less in the lead-in phase).
@@ -1140,7 +1141,7 @@ class Event:
         """
         return Array(count, self)
 
-    def chunk(self, size: int) -> Chunk:
+    def chunk(self, size: int) -> "Chunk":
         """
         Chunk values up in lists of equal size. The last chunk can be shorter.
 
@@ -1149,7 +1150,7 @@ class Event:
         """
         return Chunk(size, self)
 
-    def chunkwith(self, timer: Event, emit_empty: bool = True) -> ChunkWith:
+    def chunkwith(self, timer: "Event", emit_empty: bool = True) -> "ChunkWith":
         """
         Emit a chunked list of values when the timer emits.
 
@@ -1159,7 +1160,7 @@ class Event:
         """
         return ChunkWith(timer, emit_empty, self)
 
-    def chain(self, *sources: Event) -> Chain:
+    def chain(self, *sources: "Event") -> "Chain":
         """
         Re-emit from a source until it ends, then move to the next source,
         Repeat until all sources have ended, ending the chain.
@@ -1176,7 +1177,7 @@ class Event:
         """
         return Chain(self, *sources)
 
-    def merge(self, *sources) -> Merge:
+    def merge(self, *sources) -> "Merge":
         """
         Re-emit everything from the source events::
 
@@ -1190,7 +1191,7 @@ class Event:
         """
         return Merge(self, *sources)
 
-    def concat(self, *sources) -> Concat:
+    def concat(self, *sources) -> "Concat":
         """
         Re-emit everything from one source until it ends and then move
         to the next source::
@@ -1205,7 +1206,7 @@ class Event:
         """
         return Concat(self, *sources)
 
-    def switch(self, *sources) -> Switch:
+    def switch(self, *sources) -> "Switch":
         """
         Re-emit everything from one source and move to another source as soon
         as that other source starts to emit::
@@ -1220,7 +1221,7 @@ class Event:
         """
         return Switch(self, *sources)
 
-    def zip(self, *sources) -> Zip:
+    def zip(self, *sources) -> "Zip":
         """
         Zip sources together: The i-th emit has the i-th value from
         each source as positional arguments. Only emits when each source has
@@ -1236,7 +1237,7 @@ class Event:
         """
         return Zip(self, *sources)
 
-    def ziplatest(self, *sources, partial: bool = True) -> Ziplatest:
+    def ziplatest(self, *sources, partial: bool = True) -> "Ziplatest":
         """
         Emit zipped values with the latest value from each of the
         source events. Emits every time when a source emits::
@@ -1253,7 +1254,7 @@ class Event:
         """
         return Ziplatest(self, *sources, partial=partial)
 
-    def delay(self, delay) -> Delay:
+    def delay(self, delay) -> "Delay":
         """
         Time-shift all source events by a delay::
 
@@ -1267,7 +1268,7 @@ class Event:
         """
         return Delay(delay, self)
 
-    def timeout(self, timeout) -> Timeout:
+    def timeout(self, timeout) -> "Timeout":
         """
         When the source doesn't emit for longer than the timeout period,
         do an empty emit and set this event as done.
@@ -1277,7 +1278,7 @@ class Event:
         """
         return Timeout(timeout, self)
 
-    def throttle(self, maximum, interval, cost_func=None) -> Throttle:
+    def throttle(self, maximum, interval, cost_func=None) -> "Throttle":
         """
         Limit number of emits per time without dropping values.
         Values that come in too fast are queued and re-emitted as soon
@@ -1298,7 +1299,7 @@ class Event:
         """
         return Throttle(maximum, interval, cost_func, self)
 
-    def debounce(self, delay, on_first: bool = False) -> Debounce:
+    def debounce(self, delay, on_first: bool = False) -> "Debounce":
         """
         Filter out values from the source that happen in rapid succession.
 
@@ -1320,19 +1321,19 @@ class Event:
         """
         return Debounce(delay, on_first, self)
 
-    def copy(self) -> Copy:
+    def copy(self) -> "Copy":
         """
         Create a shallow copy of the source values.
         """
         return Copy(self)
 
-    def deepcopy(self) -> Deepcopy:
+    def deepcopy(self) -> "Deepcopy":
         """
         Create a deep copy of the source values.
         """
         return Deepcopy(self)
 
-    def sample(self, timer: Event) -> Sample:
+    def sample(self, timer: "Event") -> "Sample":
         """
         At the times that the timer emits, sample the value from this
         event and emit the sample.
@@ -1342,13 +1343,13 @@ class Event:
         """
         return Sample(timer, self)
 
-    def errors(self) -> Errors:
+    def errors(self) -> "Errors":
         """
         Emit errors from the source.
         """
         return Errors(self)
 
-    def end_on_error(self) -> EndOnError:
+    def end_on_error(self) -> "EndOnError":
         """
         End on any error from the source.
         """
