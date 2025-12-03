@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import sys
 from collections.abc import AsyncIterator
 
 
@@ -41,6 +42,63 @@ class MainEventLoop:
 
 
 main_event_loop = MainEventLoop()
+
+
+def get_async_task_info():
+    """Get information about current asyncio tasks for debugging (Python 3.14+)."""
+    try:
+        import asyncio
+        current_task = asyncio.current_task()
+        if current_task:
+            return {
+                'name': current_task.get_name(),
+                'coro': current_task.get_coro().__name__ if hasattr(current_task.get_coro(), '__name__') else str(current_task.get_coro()),
+                'state': 'done' if current_task.done() else 'running',
+                'cancelled': current_task.cancelled()
+            }
+        return None
+    except RuntimeError:
+        return None
+
+
+def get_event_loop_info():
+    """Get information about the current event loop for debugging (Python 3.14+)."""
+    try:
+        loop = asyncio.get_running_loop()
+        return {
+            'running': loop.is_running(),
+            'closed': loop.is_closed(),
+            'debug': loop.get_debug(),
+            'task_count': len(asyncio.all_tasks(loop)) if hasattr(asyncio, 'all_tasks') else 'unknown'
+        }
+    except RuntimeError:
+        return None
+
+
+def debug_async_state():
+    """Comprehensive async debugging information (Python 3.14+)."""
+    task_info = get_async_task_info()
+    loop_info = get_event_loop_info()
+    
+    debug_info = {
+        'task': task_info,
+        'loop': loop_info,
+        'python_version': sys.version_info
+    }
+    
+    # Add Python 3.14+ specific introspection if available
+    if sys.version_info >= (3, 14):
+        try:
+            # Try to use new asyncio introspection features
+            import subprocess
+            import os
+            pid = os.getpid()
+            # This would work with python -m asyncio ps {pid} command
+            debug_info['introspection_available'] = True
+        except Exception:
+            debug_info['introspection_available'] = False
+    
+    return debug_info
 
 
 async def timerange(

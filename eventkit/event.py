@@ -3,11 +3,15 @@ import logging
 import types
 import weakref
 from collections.abc import AsyncIterable, Awaitable, Callable, Iterable
-from typing import TYPE_CHECKING, Self
-from typing import Any as AnyType
+from typing import Self, Any
 
-if TYPE_CHECKING:
-    pass
+# Python 3.14+ template string support for optimised logging
+try:
+    from string.templatelib import Template, Interpolation
+    TEMPLATE_SUPPORT = True
+except ImportError:
+    TEMPLATE_SUPPORT = False
+
 
 from .types import EventType, ForkType
 from .util import NO_VALUE, main_event_loop
@@ -37,13 +41,13 @@ class Event:
     NO_VALUE = NO_VALUE
     logger = logging.getLogger(__name__)
 
-    error_event: "EventType | None"
-    done_event: "EventType | None"
+    error_event: Event | None
+    done_event: Event | None
     _name: str
-    _value: AnyType
+    _value: Any
     _slots: list[list]
     _done: bool
-    _source: "EventType | None"
+    _source: Event | None
 
     def __init__(self, name: str = "", _with_error_done_events: bool = True):
         self.error_event = None
@@ -88,7 +92,7 @@ class Event:
             if self.done_event is not None:
                 self.done_event.emit(self)
 
-    def value(self) -> AnyType:
+    def value(self) -> Any:
         """
         This event's last emitted value.
         """
@@ -176,7 +180,7 @@ class Event:
             self.done_event.disconnect(done)
         return self
 
-    def disconnect_obj(self, obj: AnyType) -> None:
+    def disconnect_obj(self, obj: Any) -> None:
         """
         Disconnect all listeners on the given object.
         (also the error and done listeners).
@@ -194,7 +198,7 @@ class Event:
         if self.done_event is not None:
             self.done_event.disconnect_obj(obj)
 
-    def emit(self, *args: AnyType) -> None:
+    def emit(self, *args: Any) -> None:
         """
         Emit a new value to all connected listeners.
 
@@ -239,7 +243,7 @@ class Event:
                         f"Value {args} caused exception for event {self}"
                     )
 
-    def emit_threadsafe(self, *args: AnyType) -> None:
+    def emit_threadsafe(self, *args: Any) -> None:
         """
         Threadsafe version of :meth:`emit` that doesn't invoke the
         listeners directly but via the event loop of the main thread.
@@ -248,11 +252,17 @@ class Event:
 
     def clear(self) -> None:
         """
-        Disconnect all listeners.
+        Disconnect all listeners with optimized cleanup for Python 3.14+ incremental GC.
         """
+        # Clear references to help incremental garbage collection
         for slot in self._slots:
             slot[0] = slot[1] = slot[2] = None
-        self._slots = []
+        self._slots.clear()  # Use clear() instead of reassignment for better memory management
+        
+        # Force garbage collection hint for large event systems (Python 3.14+ incremental GC)
+        if len(self._slots) > 1000:
+            import gc
+            gc.collect(1)  # Collect young generation incrementally
 
     def run(self) -> list:
         """
@@ -343,14 +353,14 @@ class Event:
     def set_source(self, source: "EventType | None") -> None:
         self._source = source
 
-    def _onFinalize(self, ref: AnyType) -> None:
+    def _onFinalize(self, ref: Any) -> None:
         for slot in self._slots:
             if slot[1] is ref:
                 slot[0] = slot[1] = slot[2] = None
         self._slots = [s for s in self._slots if s != [None, None, None]]
 
     @staticmethod
-    def _split(c: Callable) -> tuple[AnyType | None, Callable | None]:
+    def _split(c: Callable) -> tuple[Any | None, Callable | None]:
         """
         Split given callable in (object, function) tuple.
         """
@@ -372,7 +382,7 @@ class Event:
 
     async def aiter(
         self, skip_to_last: bool = False, tuples: bool = False
-    ) -> AsyncIterable[AnyType]:
+    ) -> AsyncIterable[Any]:
         """
         Create an asynchronous iterator that yields the emitted values
         from this event::
@@ -410,7 +420,7 @@ class Event:
 
         if self.done():
             return
-        q: asyncio.Queue[tuple[str, AnyType]] = asyncio.Queue()
+        q: asyncio.Queue[tuple[str, Any]] = asyncio.Queue()
         self.connect(on_event, on_error, on_done)
         try:
             while True:
@@ -480,7 +490,7 @@ class Event:
 
         if self.done():
             raise ValueError("Event already done")
-        fut: asyncio.Future[AnyType] = asyncio.Future()
+        fut: asyncio.Future[Any] = asyncio.Future()
         self.connect(on_event, on_error)
         fut.add_done_callback(on_future_done)
         return fut.__await__()

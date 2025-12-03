@@ -44,27 +44,44 @@ class Aiterate(Event):
 
     def __init__(self, ait):
         Event.__init__(self, ait.__qualname__)
-        # Create task immediately like original code
-        try:
-            self._task = asyncio.create_task(self._looper(ait))
-        except RuntimeError:
-            # No running loop - use policy approach
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            self._task = loop.create_task(self._looper(ait))
+        self._ait = ait
+        self._task = None
 
-    async def _looper(self, ait):
+    def _ensure_task(self):
+        """Create the task if it doesn't exist and there's a running loop."""
+        if self._task is None:
+            try:
+                # Check if there's a running loop
+                asyncio.get_running_loop()
+                self._task = asyncio.create_task(self._looper())
+            except RuntimeError:
+                # No running loop - defer task creation
+                pass
+
+    async def _looper(self):
         try:
-            async for args in ait:
+            async for args in self._ait:
                 self.emit(args)
         except Exception as error:
             if self.error_event is not None:
                 self.error_event.emit(self, error)
         self._task = None
         self.set_done()
+
+    def run(self):
+        """Override run to ensure task is created before running the loop."""
+        self._ensure_task()
+        return Event.run(self)
+
+    def list(self):
+        """Override list to ensure task is created before collecting values."""
+        self._ensure_task()
+        return Event.list(self)
+
+    def connect(self, listener, error=None, done=None, keep_ref: bool = False):
+        """Override connect to ensure task is created when event is connected to."""
+        self._ensure_task()
+        return Event.connect(self, listener, error, done, keep_ref)
 
     def __del__(self):
         if hasattr(self, "_task") and self._task:
