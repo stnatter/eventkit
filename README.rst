@@ -1,5 +1,3 @@
-|Build| |PyVersion| |Status| |PyPiVersion| |License| |Docs|
-
 Introduction
 ------------
 
@@ -104,19 +102,6 @@ Output::
     ('X', '1')
     ('Y', '2')
     ('Z', '3')
-
-**Real-time video analysis pipeline**
-
-.. code-block:: python
-
-    self.video = VideoStream(conf.CAM_ID)
-    scene = self.video | FaceTracker | SceneAnalyzer
-    lastScene = scene.aiter(skip_to_last=True)
-    async for frame, persons in lastScene:
-        ...
-
-`Full source code <https://github.com/erdewit/heartwave/blob/100e1a89d18756e141f9dcfbb73c55a1009debf4/heartwave/app.py#L88>`_
-
 
 Inspired by:
 ------------
