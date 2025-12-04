@@ -225,15 +225,9 @@ class Event:
                     try:
                         asyncio.create_task(result)
                     except RuntimeError:
-                        # No running loop - try to use the test's approach first
-                        try:
-                            loop = asyncio.get_event_loop()
-                            loop.create_task(result)
-                        except RuntimeError:
-                            # Create a new loop as last resort
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                            loop.create_task(result)
+                        # No running loop - use singleton loop
+                        loop = main_event_loop.get()
+                        loop.create_task(result)
 
             except Exception as error:
                 if self.error_event is not None and len(self.error_event):
@@ -283,20 +277,15 @@ class Event:
                 await event.list()
         """
         try:
-            # Check if we're already in an async context
             asyncio.get_running_loop()
             raise RuntimeError(
                 "Cannot use .run() from within an async context. "
                 "Use 'await event.list()' instead."
             )
         except RuntimeError:
-            # No running loop - use policy to get the right one
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            return loop.run_until_complete(self.list())
+            pass
+        loop = main_event_loop.get()
+        return loop.run_until_complete(self.list())
 
     def pipe(self, *targets: "EventType") -> "EventType":
         """

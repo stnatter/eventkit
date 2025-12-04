@@ -4,7 +4,7 @@ import time
 from typing import Any
 
 from ..event import Event
-from ..util import NO_VALUE, timerange
+from ..util import NO_VALUE, get_event_loop, timerange
 from .op import Op
 
 
@@ -38,50 +38,24 @@ class Wait(Event):
 
 
 class Aiterate(Event):
-    __slots__ = ("_task", "_ait")
+    __slots__ = ("_task",)
 
     _task: asyncio.Task[Any] | None
 
     def __init__(self, ait):
         Event.__init__(self, ait.__qualname__)
-        self._ait = ait
-        self._task = None
+        loop = get_event_loop()
+        self._task = loop.create_task(self._looper(ait))
 
-    def _ensure_task(self):
-        """Create the task if it doesn't exist and there's a running loop."""
-        if self._task is None:
-            try:
-                # Check if there's a running loop
-                asyncio.get_running_loop()
-                self._task = asyncio.create_task(self._looper())
-            except RuntimeError:
-                # No running loop - defer task creation
-                pass
-
-    async def _looper(self):
+    async def _looper(self, ait):
         try:
-            async for args in self._ait:
+            async for args in ait:
                 self.emit(args)
         except Exception as error:
             if self.error_event is not None:
                 self.error_event.emit(self, error)
         self._task = None
         self.set_done()
-
-    def run(self):
-        """Override run to ensure task is created before running the loop."""
-        self._ensure_task()
-        return Event.run(self)
-
-    def list(self):
-        """Override list to ensure task is created before collecting values."""
-        self._ensure_task()
-        return Event.list(self)
-
-    def connect(self, listener, error=None, done=None, keep_ref: bool = False):
-        """Override connect to ensure task is created when event is connected to."""
-        self._ensure_task()
-        return Event.connect(self, listener, error, done, keep_ref)
 
     def __del__(self):
         if hasattr(self, "_task") and self._task:
@@ -111,8 +85,7 @@ class Sequence(Aiterate):
 class Repeat(Sequence):
     __slots__ = ()
 
-    def __init__(self, value, count, interval=0, times=None):
-        Sequence.__init__(self, itertools.repeat(count), interval, times)
+    def __init__(self, value, count, interval=0, times=N      Sequence.__init__(self, itertools.repeat(value, count), interval, times)
 
 
 class Range(Sequence):

@@ -17,31 +17,30 @@ class _NoValue:
 NO_VALUE = _NoValue()
 
 
-def get_event_loop() -> asyncio.AbstractEventLoop:
-    """Get asyncio event loop for Python 3.13+."""
-    try:
-        return asyncio.get_running_loop()
-    except RuntimeError:
-        # No running loop - create and set a new one
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
-
-
-# Lazy initialization - create main loop when needed
 class MainEventLoop:
-    """Lazy event loop holder."""
+    """Singleton event loop holder for Python 3.14+."""
 
     _loop: asyncio.AbstractEventLoop | None = None
 
     @classmethod
     def get(cls) -> asyncio.AbstractEventLoop:
-        if cls._loop is None:
-            cls._loop = get_event_loop()
+        """Get the main event loop, creating one if necessary."""
+        try:
+            return asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        if cls._loop is None or cls._loop.is_closed():
+            cls._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(cls._loop)
         return cls._loop
 
 
 main_event_loop = MainEventLoop()
+
+
+def get_event_loop() -> asyncio.AbstractEventLoop:
+    """Get asyncio event loop for Python 3.14+."""
+    return main_event_loop.get()
 
 
 def get_async_task_info():
