@@ -117,26 +117,6 @@ Output::
 
 `Full source code <https://github.com/erdewit/heartwave/blob/100e1a89d18756e141f9dcfbb73c55a1009debf4/heartwave/app.py#L88>`_
 
-Distributed computing
----------------------
-
-The `distex <https://github.com/erdewit/distex>`_ library provides a
-``poolmap`` extension method to put multiple cores or machines to use:
-
-.. code-block:: python
-
-    from distex import Pool
-    import eventkit as ev
-    import bz2
-
-    pool = Pool()
-    # await pool  # un-comment in Jupyter
-    data = [b'A' * 1000000] * 1000
-
-    pipe = ev.Sequence(data).poolmap(pool, bz2.compress).map(len).mean().last()
-
-    print(pipe.run())  # in Jupyter: print(await pipe)
-    pool.shutdown()
 
 
 Inspired by:
@@ -159,7 +139,6 @@ The complete `API documentation <https://eventkit.readthedocs.io/en/latest/api.h
 
 
 .. _Python: http://www.python.org
-.. _`Interactive Brokers Python API`: http://interactivebrokers.github.io
 
 .. |Build| image:: https://github.com/erdewit/eventkit/actions/workflows/test.yml/badge.svg?branch=master
    :alt: Build
