@@ -85,7 +85,8 @@ class Sequence(Aiterate):
 class Repeat(Sequence):
     __slots__ = ()
 
-    def __init__(self, value, count, interval=0, times=N      Sequence.__init__(self, itertools.repeat(value, count), interval, times)
+    def __init__(self, value, count, interval=0, times=None):
+        Sequence.__init__(self, itertools.repeat(value, count), interval, times)
 
 
 class Range(Sequence):

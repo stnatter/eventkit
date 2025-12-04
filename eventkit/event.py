@@ -3,15 +3,7 @@ import logging
 import types
 import weakref
 from collections.abc import AsyncIterable, Awaitable, Callable, Iterable
-from typing import Self, Any
-
-# Python 3.14+ template string support for optimised logging
-try:
-    from string.templatelib import Template, Interpolation
-    TEMPLATE_SUPPORT = True
-except ImportError:
-    TEMPLATE_SUPPORT = False
-
+from typing import Any, Self
 
 from .types import EventType, ForkType
 from .util import NO_VALUE, main_event_loop
@@ -41,13 +33,13 @@ class Event:
     NO_VALUE = NO_VALUE
     logger = logging.getLogger(__name__)
 
-    error_event: Event | None
-    done_event: Event | None
+    error_event: "Event | None"
+    done_event: "Event | None"
     _name: str
     _value: Any
     _slots: list[list]
     _done: bool
-    _source: Event | None
+    _source: "Event | None"
 
     def __init__(self, name: str = "", _with_error_done_events: bool = True):
         self.error_event = None
@@ -246,17 +238,11 @@ class Event:
 
     def clear(self) -> None:
         """
-        Disconnect all listeners with optimized cleanup for Python 3.14+ incremental GC.
+        Disconnect all listeners.
         """
-        # Clear references to help incremental garbage collection
         for slot in self._slots:
             slot[0] = slot[1] = slot[2] = None
-        self._slots.clear()  # Use clear() instead of reassignment for better memory management
-        
-        # Force garbage collection hint for large event systems (Python 3.14+ incremental GC)
-        if len(self._slots) > 1000:
-            import gc
-            gc.collect(1)  # Collect young generation incrementally
+        self._slots.clear()
 
     def run(self) -> list:
         """
