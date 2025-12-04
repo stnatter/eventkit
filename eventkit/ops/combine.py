@@ -16,27 +16,27 @@ class Fork(list):
     def __init__(self):
         list.__init__(self)
 
-    def join(self, joiner: "JoinOp"):
+    def join(self, joiner: JoinOp):
         joiner._set_sources(*self)
         self.clear()
         return joiner
 
-    def concat(self) -> "Concat":
+    def concat(self) -> Concat:
         return self.join(Concat())  # type: ignore[no-any-return]
 
-    def merge(self) -> "Merge":
+    def merge(self) -> Merge:
         return self.join(Merge())  # type: ignore[no-any-return]
 
-    def switch(self) -> "Switch":
+    def switch(self) -> Switch:
         return self.join(Switch())  # type: ignore[no-any-return]
 
-    def zip(self) -> "Zip":
+    def zip(self) -> Zip:
         return self.join(Zip())  # type: ignore[no-any-return]
 
-    def ziplatest(self) -> "Ziplatest":
+    def ziplatest(self) -> Ziplatest:
         return self.join(Ziplatest())  # type: ignore[no-any-return]
 
-    def chain(self) -> "Chain":
+    def chain(self) -> Chain:
         return self.join(Chain())  # type: ignore[no-any-return]
 
 

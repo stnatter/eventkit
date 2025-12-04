@@ -118,7 +118,6 @@ Output::
 `Full source code <https://github.com/erdewit/heartwave/blob/100e1a89d18756e141f9dcfbb73c55a1009debf4/heartwave/app.py#L88>`_
 
 
-
 Inspired by:
 ------------
 
@@ -130,36 +129,4 @@ Inspired by:
     * `Reactive extensions <http://reactivex.io/documentation/operators.html>`_
     * `underscore.js <https://underscorejs.org>`_
     * `.NET Events <https://docs.microsoft.com/en-us/dotnet/standard/events>`_
-
-Documentation
--------------
-
-The complete `API documentation <https://eventkit.readthedocs.io/en/latest/api.html>`_.
-
-
-
-.. _Python: http://www.python.org
-
-.. |Build| image:: https://github.com/erdewit/eventkit/actions/workflows/test.yml/badge.svg?branch=master
-   :alt: Build
-   :target: https://github.com/erdewit/eventkit/actions
-
-.. |PyPiVersion| image:: https://img.shields.io/pypi/v/eventkit.svg
-   :alt: PyPi
-   :target: https://pypi.python.org/pypi/eventkit
-
-
-.. |PyVersion| image:: https://img.shields.io/badge/python-3.6+-blue.svg
-   :alt:
-
-.. |Status| image:: https://img.shields.io/badge/status-stable-green.svg
-   :alt:
-
-.. |License| image:: https://img.shields.io/badge/license-BSD-blue.svg
-   :alt:
-
-.. |Docs| image:: https://readthedocs.org/projects/eventkit/badge/?version=latest
-   :alt: Documentation
-   :target: https://eventkit.readthedocs.io
-
 

@@ -8,58 +8,10 @@ dynamic = ["version"]
 description = "Event-driven data pipelines"
 readme = "README.rst"
 license = "BSD-3-Clause"
-authors = [
-    {name = "Ewald R. de Wit (original creator)"}
-]
-maintainers = [
-    {name = "Steffen M Natter", email = "stnatter@gmail.com"}
-]
-keywords = ["python", "asyncio", "event", "driven", "data", "pipelines"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research", 
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3 :: Only",
-    "Operating System :: OS Independent",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Scientific/Engineering",
-    "Framework :: AsyncIO",
-]
-requires-python = ">=3.13"
-dependencies = [
-    "numpy>=2.3.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0", 
-    "mypy>=1.0.0",
-    "ruff>=0.1.0",
-    "build>=0.10.0",
-    "twine>=4.0.0",
-]
-test = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-]
-lint = [
-    "mypy>=1.0.0", 
-    "black>=22.0.0",
-    "ruff>=0.1.0",
-]
-uvloop = [
-    "uvloop>=0.17.0; sys_platform != 'win32'",
-]
-
-[project.urls]
-Homepage = "https://github.com/stnatter/eventkit"
-Repository = "https://github.com/stnatter/eventkit.git"
-Issues = "https://github.com/stnatter/eventkit/issues"
-Documentation = "https://github.com/stnatter/eventkit"
-"Original Project" = "https://github.com/erdewit/eventkit"
+authors = [{name = "Ewald R. de Wit (original creator)"}]
+maintainers = [{name = "Steffen M Natter", email = "stnatter@gmail.com"}]
+requires-python = ">=3.14"
+dependencies = ["numpy>=2.3.0"]
 
 [tool.setuptools.dynamic]
 version = {attr = "eventkit.version.__version__"}
@@ -70,94 +22,18 @@ exclude = ["tests*", "docs*", "notebooks*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
 asyncio_mode = "auto"
-addopts = [
-    "--strict-markers",
-    "--strict-config", 
-    "--verbose",
-]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
 
 [tool.mypy]
-python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false  # Gradually enable this
-disallow_incomplete_defs = false
-check_untyped_defs = true
-disallow_untyped_decorators = false
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
 exclude = ["tests/", "build/"]
-
-[tool.black]
-line-length = 88
-target-version = ['py313']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.mypy_cache
-  | \.pytest_cache
-  | \.venv
-  | build
-  | dist
-)/
-'''
+disable_error_code = ["annotation-unchecked"]
 
 [tool.ruff]
-target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-]
-ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
-    "E402",  # module level import not at top of file (needed for circular imports)
-]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501", "B008", "C901", "E402"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**/*" = ["E501"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["eventkit"]
-
-[tool.coverage.run]
-source = ["eventkit"]
-omit = ["tests/*", "*/tests/*"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
