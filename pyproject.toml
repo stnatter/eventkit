@@ -13,6 +13,10 @@ maintainers = [{name = "Steffen M Natter", email = "stnatter@gmail.com"}]
 requires-python = ">=3.14"
 dependencies = ["numpy>=2.3.0"]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "mypy", "ruff"]
+test = ["pytest", "pytest-asyncio"]
+
 [tool.setuptools.dynamic]
 version = {attr = "eventkit.version.__version__"}
 
