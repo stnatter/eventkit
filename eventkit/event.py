@@ -1029,11 +1029,11 @@ class Event:
         """
         return Mean(self)
 
-    def any(self) -> "Any":
+    def any(self) -> "AnyOp":
         """
         Test if predicate holds for at least one source value.
         """
-        return Any(self)
+        return AnyOp(self)
 
     def all(self) -> "All":
         """
@@ -1345,7 +1345,7 @@ class Event:
 
 from .ops.aggregate import (
     All,
-    Any,
+    AnyOp,
     Count,
     Deque,
     Ema,

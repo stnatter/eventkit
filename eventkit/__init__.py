@@ -3,7 +3,7 @@
 from .event import Event
 from .ops.aggregate import (
     All,
-    Any,
+    AnyOp,
     Count,
     Deque,
     Ema,

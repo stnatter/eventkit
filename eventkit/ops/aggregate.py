@@ -79,7 +79,7 @@ class Mean(Op):
         self.emit(self._sum / self._count)
 
 
-class Any(Reduce):
+class AnyOp(Reduce):
     __slots__ = ()
 
     def __init__(self, source=None):
