@@ -56,13 +56,13 @@ class Array(Op):
         """
         return ArrayStd(self)
 
-    def any(self) -> "ArrayAny":
+    def any(self) -> "ArrayAny":  # type: ignore[override]
         """
         Test if any array value is true.
         """
         return ArrayAny(self)
 
-    def all(self) -> "ArrayAll":
+    def all(self) -> "ArrayAll":  # type: ignore[override]
         """
         Test if all array values are true.
         """
