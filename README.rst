@@ -1,3 +1,14 @@
+|Python| |License| |CI|
+
+.. |Python| image:: https://img.shields.io/badge/python-3.14+-blue.svg
+   :target: https://www.python.org/downloads/
+
+.. |License| image:: https://img.shields.io/badge/license-BSD--3--Clause-green.svg
+   :target: https://github.com/stnatter/eventkit/blob/master/LICENSE
+
+.. |CI| image:: https://github.com/stnatter/eventkit/actions/workflows/ci-test.yaml/badge.svg
+   :target: https://github.com/stnatter/eventkit/actions/workflows/ci-test.yaml
+
 Introduction
 ------------
 
@@ -11,7 +22,7 @@ with familiar names from Python and its libraries where possible.
 For scheduling asyncio is used and there is seamless integration with it.
 
 See the examples and the
-`introduction notebook <https://github.com/erdewit/eventkit/tree/master/notebooks/eventkit_introduction.ipynb>`_
+`introduction notebook <https://github.com/stnatter/eventkit/tree/master/notebooks/eventkit_introduction.ipynb>`_
 to get a true feel for the possibilities.
 
 Installation
@@ -19,9 +30,9 @@ Installation
 
 ::
 
-    pip3 install eventkit
+    pip install eventkit
 
-Python_ version 3.6 or higher is required.
+Python version 3.14 or higher is required.
 
 
 Examples
@@ -95,7 +106,7 @@ Output::
         async for t in ev.Zip(ait('XYZ'), ait('123')):
             print(t)
 
-    asyncio.get_event_loop().run_until_complete(main())  # in Jupyter: await main()
+    asyncio.run(main())  # in Jupyter: await main()
 
 Output::
 

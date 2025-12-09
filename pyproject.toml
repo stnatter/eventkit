@@ -17,6 +17,9 @@ dependencies = ["numpy>=2.3.0"]
 dev = ["pytest", "pytest-asyncio", "mypy", "ruff"]
 test = ["pytest", "pytest-asyncio"]
 
+[project.urls]
+Repository = "https://github.com/stnatter/eventkit"
+
 [tool.setuptools.dynamic]
 version = {attr = "eventkit.version.__version__"}
 
