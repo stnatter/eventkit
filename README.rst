@@ -30,7 +30,7 @@ Installation
 
 ::
 
-    pip install eventkit
+    pip install git+https://github.com/stnatter/eventkit.git
 
 Python version 3.14 or higher is required.
 
