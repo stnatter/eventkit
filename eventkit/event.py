@@ -1084,6 +1084,16 @@ class Event:
         """
         return Changes(self)
 
+    def changes_by(self, key=None) -> ChangesBy:
+        """
+        Emit only when key(value) differs from previous.
+
+        Args:
+            key: Function to extract comparison key from emitted values.
+                 If None, compares entire value (same as changes()).
+        """
+        return ChangesBy(key, self)
+
     def unique(self, key=None) -> Unique:
         """
         Emit only unique values, dropping values that have already
@@ -1382,6 +1392,7 @@ from .ops.misc import EndOnError, Errors
 from .ops.op import Op
 from .ops.select import (
     Changes,
+    ChangesBy,
     DropWhile,
     Filter,
     Last,

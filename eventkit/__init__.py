@@ -50,6 +50,7 @@ from .ops.misc import EndOnError, Errors
 from .ops.op import Op
 from .ops.select import (
     Changes,
+    ChangesBy,
     DropWhile,
     Filter,
     Last,

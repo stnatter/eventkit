@@ -118,6 +118,27 @@ class Changes(Op):
         self._prev = args
 
 
+class ChangesBy(Op):
+    """Only emit when key function returns different value from previous."""
+
+    __slots__ = ("_key", "_prev")
+
+    def __init__(
+        self,
+        key: Callable[..., AnyType] | None = None,
+        source: AnyType | None = None,
+    ):
+        Op.__init__(self, source)
+        self._key = key or (lambda *args: args)
+        self._prev: AnyType = NO_VALUE
+
+    def on_source(self, *args: AnyType) -> None:
+        current_key = self._key(*args)
+        if self._prev is NO_VALUE or current_key != self._prev:
+            self.emit(*args)
+            self._prev = current_key
+
+
 class Unique(Op):
     __slots__ = ("_key", "_seen")
 
