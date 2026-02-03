@@ -1078,21 +1078,14 @@ class Event:
         """
         return Pairwise(self)
 
-    def changes(self) -> Changes:
+    def changes(self, key=None) -> Changes:
         """
-        Emit only source values that have changed from the previous value.
-        """
-        return Changes(self)
-
-    def changes_by(self, key=None) -> ChangesBy:
-        """
-        Emit only when key(value) differs from previous.
+        Emit only when value (or key(value) if key provided) differs from previous.
 
         Args:
-            key: Function to extract comparison key from emitted values.
-                 If None, compares entire value (same as changes()).
+            key: Optional function to extract comparison key from emitted values.
         """
-        return ChangesBy(key, self)
+        return Changes(key, self)
 
     def unique(self, key=None) -> Unique:
         """
@@ -1392,7 +1385,6 @@ from .ops.misc import EndOnError, Errors
 from .ops.op import Op
 from .ops.select import (
     Changes,
-    ChangesBy,
     DropWhile,
     Filter,
     Last,
