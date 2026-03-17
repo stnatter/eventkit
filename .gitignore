@@ -100,3 +100,4 @@ logs/
 # .bat
 test
 check.sh
+.claude/settings.local.json

@@ -173,6 +173,18 @@ class EventTest(unittest.TestCase):
             ev1.emit(i)
         self.assertEqual(result, list(range(10, 20)))
 
+    def test_op_clear_full_teardown(self):
+        ev1 = Event()
+        op = ev.Map(lambda x: x + 1, ev1)
+        result = []
+        op += result.append
+
+        op.clear()
+
+        self.assertIsNone(op._source)
+        self.assertEqual(len(op), 0)
+        self.assertFalse(any(s[0] is op.on_source for s in ev1._slots))
+
 
 if __name__ == "__main__":
     unittest.main()

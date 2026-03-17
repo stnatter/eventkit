@@ -56,3 +56,9 @@ class Op(Event):
 
     def _disconnect_from(self, source: Event) -> None:
         source.disconnect(self.on_source, self.on_source_error, self.on_source_done)
+
+    def clear(self) -> None:
+        if self._source is not None:
+            self._disconnect_from(self._source)
+            self._source = None
+        Event.clear(self)
