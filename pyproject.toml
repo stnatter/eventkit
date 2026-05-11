@@ -27,6 +27,9 @@ version = {attr = "eventkit.version.__version__"}
 include = ["eventkit*"]
 exclude = ["tests*", "docs*", "notebooks*"]
 
+[tool.setuptools.package-data]
+eventkit = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

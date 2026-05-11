@@ -147,7 +147,7 @@ class Event:
             self.error_event.connect(error)
         return self
 
-    def disconnect(self, listener, error=None, done=None):
+    def disconnect(self, listener, error=None, done=None) -> "Event":
         """
         Disconnect a listener from this event.
 
@@ -425,10 +425,13 @@ class Event:
     def __repr__(self):
         return f"Event<{self.name()}, {self._slots}>"
 
-    def __len__(self):
+    def __class_getitem__(cls, item: Any) -> type:
+        return cls
+
+    def __len__(self) -> int:
         return len(self._slots)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
     def __getitem__(self, fork_targets) -> ForkType:

@@ -99,7 +99,7 @@ class Range(Sequence):
 class Timerange(Aiterate):
     __slots__ = ()
 
-    def __init__(self, start=0, end=None, step=1):
+    def __init__(self, start: float = 0, end: float | None = None, step: float = 1) -> None:
         Aiterate.__init__(self, timerange(start, end, step))
 
 
