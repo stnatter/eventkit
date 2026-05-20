@@ -147,7 +147,7 @@ class Event:
             self.error_event.connect(error)
         return self
 
-    def disconnect(self, listener, error=None, done=None) -> "Event":
+    def disconnect(self, listener, error=None, done=None) -> Self:
         """
         Disconnect a listener from this event.
 
