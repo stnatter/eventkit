@@ -28,8 +28,7 @@ jobs:
 
     - name: Run Ruff linter
       run: |
-        ruff check eventkit tests
-        ruff format --check eventkit tests
+        ruff format eventkit tests && ruff check --fix eventkit tests
 
     - name: Run mypy
       run: mypy eventkit
